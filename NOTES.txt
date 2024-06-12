@@ -1,0 +1,13 @@
+# Implementation notes (rewrite into README when done)
+
+
+References:
+- Heavily inspired by "A micro Lie theory for state estimation in robotics" and the `manif` library: https://github.com/artivis/manif
+- Some inspiration from Sophus library: https://github.com/strasdat/Sophus
+- Some inspiration from GTSAM library: https://github.com/borglab/gtsam
+- Ethan Eade's notes on Lie groups: https://ethaneade.com/lie.pdf
+- Tim Barfoot's state estimation book: https://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf
+  Especially the extremely handy cheat sheet: http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17_identities.pdf
+
+
+Implementation notes:
