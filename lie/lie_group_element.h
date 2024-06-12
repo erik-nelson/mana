@@ -29,16 +29,9 @@ class LieGroupElementBase {
   // Return the corresponding Lie algebra coordinate vector (upper-case log).
   AlgebraElement Log() const;
 
-  // Return the corresponding Lie algebra element (lower-case log).
-  AlgebraElementStorage log() const;
-
   // Return the Lie group element for the provided Lie algebra coordinate
   // vector (upper-case exp).
   static GroupElement Exp(const AlgebraElement& element);
-
-  // Return the Lie group element for the provided Lie algebra element
-  // (lower-case exp).
-  static GroupElement exp(const AlgebraElementStorage& element);
 
   // Compose this Lie group element with the provided `rhs` Lie group element.
   GroupElement Compose(const GroupElement& rhs) const;
@@ -55,6 +48,13 @@ class LieGroupElementBase {
 
   // --------------------------------------------------------------------------
   // Induced API (built from methods above).
+
+  // Return the corresponding Lie algebra element (lower-case log).
+  AlgebraElementStorage log() const;
+
+  // Return the Lie group element for the provided Lie algebra element
+  // (lower-case exp).
+  static GroupElement exp(const AlgebraElementStorage& element);
 
   // The (upper-case versions of) right- and left- plus and minus operators (see
   // Eqs. 25-28). These functions operate on / return Lie algebra coordinate
@@ -77,7 +77,7 @@ class LieGroupElementBase {
   // to the provided scalar tolerance. This check is performed in the Lie
   // algebra.
   bool EqualTo(const GroupElement& rhs,
-               Scalar epsilon = Constants<Scalar>::kEps) const;
+               Scalar epsilon = Constants<Scalar>::kEpsilon) const;
 
   // --------------------------------------------------------------------------
   // Operator overloads.
@@ -86,16 +86,16 @@ class LieGroupElementBase {
   GroupElement operator+(const AlgebraElement& rhs) const;
 
   // In-place addition: uses right-plus operations.
-  GroupElement& operator+=(const AlgebraElement& rhs) const;
+  GroupElement& operator+=(const AlgebraElement& rhs);
 
-  // Subtraction: uses left-minus operation.
+  // Subtraction: uses right-minus operation.
   AlgebraElement operator-(const GroupElement& rhs) const;
 
   // Composition.
   GroupElement operator*(const GroupElement& rhs) const;
 
   // In-place composition.
-  GroupElement& operator*=(const GroupElement& rhs) const;
+  GroupElement& operator*=(const GroupElement& rhs);
 
   // Approximate equality.
   bool operator==(const GroupElement& rhs) const;
@@ -151,21 +151,9 @@ typename LieGroupElementBase<T>::AlgebraElement LieGroupElementBase<T>::Log()
 }
 
 template <typename T>
-typename LieGroupElementBase<T>::AlgebraElementStorage
-LieGroupElementBase<T>::log() const {
-  return Log().Hat();
-}
-
-template <typename T>
 /*static*/ typename LieGroupElementBase<T>::GroupElement
 LieGroupElementBase<T>::Exp(const AlgebraElement& element) {
   return element.Exp();
-}
-
-template <typename T>
-/*static*/ typename LieGroupElementBase<T>::GroupElement
-LieGroupElementBase<T>::exp(const AlgebraElementStorage& element) {
-  return AlgebraElement::Vee(element).Exp();
 }
 
 template <typename T>
@@ -190,6 +178,18 @@ template <typename T>
 const typename LieGroupElementBase<T>::GroupElementStorage&
 LieGroupElementBase<T>::Storage() const {
   return derived().Storage();
+}
+
+template <typename T>
+typename LieGroupElementBase<T>::AlgebraElementStorage
+LieGroupElementBase<T>::log() const {
+  return Log().Hat();
+}
+
+template <typename T>
+/*static*/ typename LieGroupElementBase<T>::GroupElement
+LieGroupElementBase<T>::exp(const AlgebraElementStorage& element) {
+  return AlgebraElement::Vee(element).Exp();
 }
 
 template <typename T>
@@ -254,7 +254,7 @@ typename LieGroupElementBase<T>::GroupElement LieGroupElementBase<T>::operator+(
 
 template <typename T>
 typename LieGroupElementBase<T>::GroupElement&
-LieGroupElementBase<T>::operator+=(const AlgebraElement& rhs) const {
+LieGroupElementBase<T>::operator+=(const AlgebraElement& rhs) {
   derived() = Plus(rhs);
   return derived();
 }
@@ -273,7 +273,7 @@ typename LieGroupElementBase<T>::GroupElement LieGroupElementBase<T>::operator*(
 
 template <typename T>
 typename LieGroupElementBase<T>::GroupElement&
-LieGroupElementBase<T>::operator*=(const GroupElement& rhs) const {
+LieGroupElementBase<T>::operator*=(const GroupElement& rhs) {
   derived() = Compose(rhs);
   return derived();
 }

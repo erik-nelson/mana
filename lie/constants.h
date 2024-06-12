@@ -4,7 +4,7 @@ namespace mana {
 
 template <typename ScalarT>
 struct Constants {
-  static constexpr ScalarT kEps = ScalarT{1e-8};
+  static constexpr ScalarT kEpsilon = 1e-8;
 };
 
 }  // namespace mana

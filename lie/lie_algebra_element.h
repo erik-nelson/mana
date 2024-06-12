@@ -27,10 +27,6 @@ class LieAlgebraElementBase {
   // The vee operator converts from a Lie algebra element to a vector.
   static AlgebraElement Vee(const AlgebraElementStorage& element);
 
-  // Return the Lie algebra coordinate vector for the provided Lie group element
-  // (upper-case Log).
-  static AlgebraElement Log(const GroupElement& element);
-
   // Return the corresponding Lie group element (upper-case Exp).
   GroupElement Exp() const;
 
@@ -45,6 +41,10 @@ class LieAlgebraElementBase {
 
   // --------------------------------------------------------------------------
   // Induced API (built from methods above).
+
+  // Return the Lie algebra coordinate vector for the provided Lie group element
+  // (upper-case Log).
+  static AlgebraElement Log(const GroupElement& element);
 
   // Access to coordinates of underlying data (checked, use operator[] for
   // unchecked access).
@@ -70,7 +70,7 @@ class LieAlgebraElementBase {
   // Return whether this Lie algebra element is approximately equal to `rhs`, up
   // to the provided scalar tolerance.
   bool EqualTo(const AlgebraElement& rhs,
-               Scalar epsilon = Constants<Scalar>::kEps) const;
+               Scalar epsilon = Constants<Scalar>::kEpsilon) const;
 
   // --------------------------------------------------------------------------
   // Operator overloads.
@@ -82,25 +82,25 @@ class LieAlgebraElementBase {
   AlgebraElement operator+(const AlgebraElement& rhs) const;
 
   // In-place coordinate vector addition.
-  AlgebraElement& operator+=(const AlgebraElement& rhs) const;
+  AlgebraElement& operator+=(const AlgebraElement& rhs);
 
   // Coordinate vector subtraction.
   AlgebraElement operator-(const AlgebraElement& rhs) const;
 
   // In-place coordinate vector subtraction.
-  AlgebraElement& operator-=(const AlgebraElement& rhs) const;
+  AlgebraElement& operator-=(const AlgebraElement& rhs);
 
   // Coordinate vector scaling.
   AlgebraElement operator*(Scalar rhs) const;
   AlgebraElement operator/(Scalar rhs) const;
 
   // In-place coordinate vector scaling.
-  AlgebraElement& operator*=(Scalar rhs) const;
-  AlgebraElement& operator/=(Scalar rhs) const;
+  AlgebraElement& operator*=(Scalar rhs);
+  AlgebraElement& operator/=(Scalar rhs);
 
   // Lie bracket and in-place Lie bracket.
   AlgebraElement operator*(const AlgebraElement& rhs) const;
-  AlgebraElement& operator*=(const AlgebraElement& rhs) const;
+  AlgebraElement& operator*=(const AlgebraElement& rhs);
 
   // Coordinate access.
   Scalar& operator[](size_t idx);
@@ -156,12 +156,6 @@ LieAlgebraElementBase<T>::Vee(const AlgebraElementStorage& element) {
 }
 
 template <typename T>
-/*static*/ typename LieAlgebraElementBase<T>::AlgebraElement
-LieAlgebraElementBase<T>::Log(const GroupElement& element) {
-  return element.Log();
-}
-
-template <typename T>
 typename LieAlgebraElementBase<T>::GroupElement LieAlgebraElementBase<T>::Exp()
     const {
   return derived().Exp();
@@ -189,6 +183,12 @@ template <typename T>
 const typename LieAlgebraElementBase<T>::AlgebraVectorStorage&
 LieAlgebraElementBase<T>::Storage() const {
   return derived().Storage();
+}
+
+template <typename T>
+/*static*/ typename LieAlgebraElementBase<T>::AlgebraElement
+LieAlgebraElementBase<T>::Log(const GroupElement& element) {
+  return element.Log();
 }
 
 template <typename T>
@@ -253,7 +253,7 @@ LieAlgebraElementBase<T>::Minus(const GroupElement& lhs,
 template <typename T>
 bool LieAlgebraElementBase<T>::EqualTo(const AlgebraElement& rhs,
                                        Scalar epsilon) const {
-  return (Storage() - rhs.Storage()).minCoeff() < epsilon;
+  return (Storage() - rhs.Storage()).array().abs().maxCoeff() <= epsilon;
 }
 
 template <typename T>
@@ -270,7 +270,7 @@ LieAlgebraElementBase<T>::operator+(const AlgebraElement& rhs) const {
 
 template <typename T>
 typename LieAlgebraElementBase<T>::AlgebraElement&
-LieAlgebraElementBase<T>::operator+=(const AlgebraElement& rhs) const {
+LieAlgebraElementBase<T>::operator+=(const AlgebraElement& rhs) {
   derived() = this->operator+(rhs);
   return derived();
 }
@@ -283,7 +283,7 @@ LieAlgebraElementBase<T>::operator-(const AlgebraElement& rhs) const {
 
 template <typename T>
 typename LieAlgebraElementBase<T>::AlgebraElement&
-LieAlgebraElementBase<T>::operator-=(const AlgebraElement& rhs) const {
+LieAlgebraElementBase<T>::operator-=(const AlgebraElement& rhs) {
   derived() = this->operator-(rhs);
   return derived();
 }
@@ -302,14 +302,14 @@ LieAlgebraElementBase<T>::operator/(Scalar rhs) const {
 
 template <typename T>
 typename LieAlgebraElementBase<T>::AlgebraElement&
-LieAlgebraElementBase<T>::operator*=(Scalar rhs) const {
+LieAlgebraElementBase<T>::operator*=(Scalar rhs) {
   derived() = this->operator*(rhs);
   return derived();
 }
 
 template <typename T>
 typename LieAlgebraElementBase<T>::AlgebraElement&
-LieAlgebraElementBase<T>::operator/=(Scalar rhs) const {
+LieAlgebraElementBase<T>::operator/=(Scalar rhs) {
   derived() = this->operator/(rhs);
   return derived();
 }
@@ -322,7 +322,7 @@ LieAlgebraElementBase<T>::operator*(const AlgebraElement& rhs) const {
 
 template <typename T>
 typename LieAlgebraElementBase<T>::AlgebraElement&
-LieAlgebraElementBase<T>::operator*=(const AlgebraElement& rhs) const {
+LieAlgebraElementBase<T>::operator*=(const AlgebraElement& rhs) {
   derived() = Compose(rhs);
   return derived();
 }

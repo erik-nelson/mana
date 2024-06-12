@@ -19,11 +19,20 @@ cc_library(
   ],
 )
 
+cc_library(
+  name = "test_utils",
+  hdrs = ["test_utils.h"],
+  deps = [
+    ":lie_group",
+  ],
+)
+
 cc_test(
   name = "test_lie_group",
   srcs = ["test_lie_group.cc"],
   deps = [
     ":lie_group",
+    ":test_utils",
     "@gtest//:gtest_main",
   ],
 )
