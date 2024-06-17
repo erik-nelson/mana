@@ -1,3 +1,6 @@
+# Mana 
+(idk, it'll have a manifold class and that name sounds cool)
+
 Just screwing around... we will see where this gets.
 
 I wanted to make it easier to build and run least squares problems, and also make a library that can easily represent 
