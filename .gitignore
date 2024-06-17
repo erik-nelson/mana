@@ -35,4 +35,4 @@
 bazel-bin
 bazel-out
 bazel-testlogs
-bazel-tinypy
+bazel-spline

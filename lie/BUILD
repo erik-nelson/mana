@@ -6,33 +6,44 @@ cc_library(
 )
 
 cc_library(
-  name = "lie_group",
+  name = "algebra",
   hdrs = [
-    "lie_algebra_element.h",
-    "lie_group_element.h",
-    "traits.h",
+    "algebra_element.h",
+    "group_element.h",
+    "manifold_element.h",
   ],
   deps = [
-    ":constants",
-    "//base:common",
     "@eigen",
+    "//utils:crtp",
   ],
 )
 
 cc_library(
-  name = "test_utils",
-  hdrs = ["test_utils.h"],
+  name = "lie_group",
+  hdrs = [
+    "lie_group_element.h",
+    "lie_algebra_element.h",
+  ],
+  deps = [":algebra"],
+)
+
+
+cc_test(
+  name = "test_group_element",
+  srcs = ["test_group_element.cc"],
   deps = [
-    ":lie_group",
+    ":algebra",
+    "@gtest//:gtest_main",
   ],
 )
 
 cc_test(
-  name = "test_lie_group",
-  srcs = ["test_lie_group.cc"],
+  name = "test_manifold_element",
+  srcs = ["test_manifold_element.cc"],
   deps = [
-    ":lie_group",
-    ":test_utils",
+    ":algebra",
+    ":constants",
+    "//utils:angles",
     "@gtest//:gtest_main",
   ],
 )
