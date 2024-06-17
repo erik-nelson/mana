@@ -38,3 +38,7 @@ optimizer.Optimize();
 We will see how much of this interface is possible to implement, but I'd like to basically not need to ever implement 
 a factor or Jacobian for simple problems like this, and instead model everything as an expression tree (where Jacobians 
 are all implemented in the library already).
+
+This is pretty similar to pytorch, except it's in C++ and should be capable of handling least squares problems, with a Lie algebra 
+library and spline library along for the ride. This is also pretty similar to symforce, except that the computation graph can be
+built and run dynamically, and does not need to be compiled. That means it'll be slow. But it'll look really slick too.
