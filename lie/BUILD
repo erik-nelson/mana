@@ -27,6 +27,14 @@ cc_library(
   deps = [":algebra"],
 )
 
+cc_test(
+  name = "test_algebra_element",
+  srcs = ["test_algebra_element.cc"],
+  deps = [
+    ":algebra",
+    "@gtest//:gtest_main",
+  ],
+)
 
 cc_test(
   name = "test_group_element",

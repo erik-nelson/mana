@@ -11,6 +11,11 @@ namespace mana {
 //     ...
 //   };
 //
+// Derived classes must implement these methods.
+// - static Derived IdentityImpl();
+// - Derived InverseImpl() const;
+// - Derived ComposeImpl(const Derived& rhs) const;
+//
 template <typename Derived>
 class GroupElement : public Crtp<Derived> {
  public:
@@ -24,12 +29,6 @@ class GroupElement : public Crtp<Derived> {
   Derived Compose(const Derived& rhs) const {
     return Crtp<Derived>::get().ComposeImpl(rhs);
   }
-
- private:
-  // Derived classes must implement these methods.
-  static Derived IdentityImpl();
-  Derived InverseImpl() const;
-  Derived ComposeImpl(const Derived& rhs) const;
 };
 
 }  // namespace mana

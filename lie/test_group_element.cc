@@ -11,7 +11,7 @@ class RealNumber : public GroupElement<RealNumber> {
   // Access underlying value.
   double Value() const { return value_; }
 
-  // Implement GroupElement interface.
+  // Implement `GroupElement` interface.
   static RealNumber IdentityImpl() { return RealNumber(0); }
   RealNumber InverseImpl() const { return RealNumber(-value_); }
   RealNumber ComposeImpl(const RealNumber& rhs) const {

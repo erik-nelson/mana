@@ -20,6 +20,16 @@ struct ManifoldTraits {};
 //     ...
 //   };
 //
+// Derived classes must implement these methods.
+// - static Derived ProjectImpl(const EmbeddingPoint& point);
+// - static bool IsValidImpl(const EmbeddingPoint& point);
+// - EmbeddingPoint PointImpl() const;
+// - StorageType& StorageImpl();
+// - const StorageType& StorageImpl() const;
+// - std::array<TangentVector, Dimension> TangentSpaceBasisImpl() const;
+// - Scalar DistanceToImpl(const Element& rhs) const;
+// - Element InterpolateImpl(const Element& rhs, Scalar fraction) const;
+//
 template <typename Derived>
 class ManifoldElement : public Crtp<Derived> {
  public:
@@ -106,19 +116,6 @@ class ManifoldElement : public Crtp<Derived> {
 
   // Inequality checking.
   bool operator!=(const Element& rhs) const { return !(*this == rhs); }
-
- private:
-  // Derived classes must implement these methods.
-  static Derived ProjectImpl(const EmbeddingPoint& point);
-  static bool IsValidImpl(const EmbeddingPoint& point);
-  EmbeddingPoint PointImpl() const;
-  StorageType& StorageImpl();
-  const StorageType& StorageImpl() const;
-#if 0
-  std::array<TangentVector, Dimension> TangentSpaceBasisImpl() const;
-#endif
-  Scalar DistanceToImpl(const Element& rhs) const;
-  Element InterpolateImpl(const Element& rhs, Scalar fraction) const;
 };
 
 // Class representing a chart on a manifold, mapping from the manifold to its

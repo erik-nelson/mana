@@ -36,7 +36,7 @@ struct ManifoldTraits<S2Element> {
 
 class S2Element : public ManifoldElement<S2Element> {
  public:
-  using Element = S2Element;
+  using Element = typename ManifoldTraits<S2Element>::Element;
   using Scalar = typename ManifoldTraits<S2Element>::Scalar;
   using Chart = typename ManifoldTraits<S2Element>::Chart;
   using Geodesic = typename ManifoldTraits<S2Element>::Geodesic;
@@ -65,7 +65,7 @@ class S2Element : public ManifoldElement<S2Element> {
                << ")\n");
   }
 
-  // Implement ManifoldElement interface.
+  // Implement `ManifoldElement` interface.
   static S2Element ProjectImpl(const EmbeddingPoint& point) {
     const Scalar magnitude = point.norm();
     assert(magnitude != 0.0);
