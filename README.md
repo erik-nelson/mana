@@ -44,10 +44,8 @@ optimizer.Optimize();
 // Updates propagated back to knot points of the original spline.
 ```
 
-We will see how much of this interface is possible to implement, but I'd like to basically not need to ever implement 
-a factor or Jacobian for simple problems like this, and instead model everything as an expression tree (where Jacobians 
-are all implemented in the library already).
+We will see how much of this interface is possible to implement, but I'd like to basically not need to ever implement a factor or Jacobian for simple problems like this, and instead model everything as an expression tree (where Jacobians are all implemented in the library already).
 
-I suppose this is pretty similar to pytorch, except it's in C++ and is mainly created to handle least squares problems: the loss/cost function is always of the form $$\rho(||r(x(t))||_2)$$, where $$x : R --> X$$ is some continuous function mapping a time interval to elements of some Lie group $$X$$. I have no delusions about not being able to implement a huge library like pytorch myself as a hobby. 
-This is also pretty similar to symforce, except that the computation graph can be built and run dynamically, and does not need to be compiled.
-That means it'll be slow. But it'll look really slick too 8-)
+I suppose this is similar to / inspired by pytorch, except it's in C++ and is mainly created to handle least squares problems. Lately all the cool SLAM papers just literally implement their factor graphs in pytorch, and "backprop" errors right back to the original poses (and sometimes weights of MLPs along the way). But pytorch does this with gradient descent or its related first-order methods, and I want something where we know the loss/cost function is always of the form $\rho(||r(x(t))||_{\Sigma})$, where $x : \mathbb{R} \rightarrow \mathcal{X}$ is some continuous function mapping a time interval to elements of some Lie group $\mathcal{X}$. I have no delusions about not being able to implement a huge library like pytorch myself as a hobby. 
+
+This is also pretty similar to symforce, except that the computation graph can be built and run dynamically, and does not need to be compiled. That means it'll be slow. But it'll look really slick too if this interface works 8-)
