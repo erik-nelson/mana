@@ -52,3 +52,12 @@ cc_test(
     "@gtest//:gtest_main",
   ],
 )
+
+cc_test(
+  name = "test_lie_group",
+  srcs = ["test_lie_group.cc"],
+  deps = [
+    ":lie_group",
+    "@gtest//:gtest_main",
+  ],
+)

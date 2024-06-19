@@ -42,4 +42,11 @@ TEST(GroupElement, Compose) {
   EXPECT_EQ(d.Value(), 8);
 }
 
+TEST(GroupElement, Between) {
+  RealNumber a(3);
+  RealNumber b(5);
+  EXPECT_EQ(a.BetweenInner(b).Value(), 2);
+  EXPECT_EQ(a.BetweenOuter(b).Value(), -2);
+}
+
 }  // namespace mana

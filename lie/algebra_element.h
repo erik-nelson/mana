@@ -21,13 +21,7 @@ struct AlgebraTraits {};
 // underlying storage is the latter. That is, we only store the relevant
 // coefficients of the coordinate vector.
 //
-// Derived group algebra element types should inherit from this like so:
-//
-//   class SO3AlgebraElement : public AlgebraElement<SO3AlgebraElement> {
-//     ...
-//   };
-//
-// Derived classes must implement these methods.
+// Derived classes must implement these methods:
 // - explicit Element(Vector coordinates); // (constructor)
 // - Element ComposeImpl(const Element& rhs) const;
 template <typename Derived>

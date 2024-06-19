@@ -12,12 +12,7 @@ struct ManifoldTraits {};
 
 // Base CRTP class for an element of a (differentiable) manifold. Manifolds are
 // expressed in an extrinsic fashion, i.e. they are assumed to be embedded
-// within a larger ambient (vector) space. Derived manifold element types should
-// inherit from this like so:
-//
-//   class S2Element : public ManifoldElement<S2Element> {
-//     ...
-//   };
+// within a larger ambient (vector) space.
 //
 // Derived classes must implement these methods.
 // - static Derived ProjectImpl(const EmbeddingPoint& point);
@@ -26,7 +21,6 @@ struct ManifoldTraits {};
 // - std::array<TangentVector, Dimension> TangentSpaceBasisImpl() const;
 // - Scalar DistanceToImpl(const Element& rhs) const;
 // - Element InterpolateImpl(const Element& rhs, Scalar fraction) const;
-//
 template <typename Derived>
 class ManifoldElement {
  public:

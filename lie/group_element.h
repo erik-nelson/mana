@@ -2,18 +2,12 @@
 
 namespace mana {
 
-// Base CRTP class for an element of a group. Derived group element types should
-// inherit from this like so:
-//
-//   class CyclicGroupElement : public GroupElement<CyclicGroupElement> {
-//     ...
-//   };
+// Base CRTP class for an element of a group.
 //
 // Derived classes must implement these methods.
 // - static Derived IdentityImpl();
 // - Derived InverseImpl() const;
 // - Derived ComposeImpl(const Derived& rhs) const;
-//
 template <typename Derived>
 class GroupElement {
  public:
