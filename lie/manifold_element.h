@@ -1,9 +1,8 @@
 #pragma once
 
 #include <array>
-#include <cassert>
 
-#include "utils/crtp.h"
+#include "lie/constants.h"
 
 namespace mana {
 
@@ -24,14 +23,12 @@ struct ManifoldTraits {};
 // - static Derived ProjectImpl(const EmbeddingPoint& point);
 // - static bool IsValidImpl(const EmbeddingPoint& point);
 // - EmbeddingPoint PointImpl() const;
-// - StorageType& StorageImpl();
-// - const StorageType& StorageImpl() const;
 // - std::array<TangentVector, Dimension> TangentSpaceBasisImpl() const;
 // - Scalar DistanceToImpl(const Element& rhs) const;
 // - Element InterpolateImpl(const Element& rhs, Scalar fraction) const;
 //
 template <typename Derived>
-class ManifoldElement : public Crtp<Derived> {
+class ManifoldElement {
  public:
   // An element of the manifold (identical to `Derived`).
   using Element = typename ManifoldTraits<Derived>::Element;
@@ -47,10 +44,6 @@ class ManifoldElement : public Crtp<Derived> {
   // a vector. For instance, points in the embedding space of 3D rotations SO(3)
   // are 3x3 matrices.
   using EmbeddingPoint = typename ManifoldTraits<Derived>::EmbeddingPoint;
-  // The underlying storage type we use to implement this element. For example,
-  // for 3D rotations this might be a 4x1 quaternion vector or a 3x1 axis-angle
-  // vector to reduce storage size.
-  using StorageType = typename ManifoldTraits<Derived>::StorageType;
   // The dimension of the manifold.
   static constexpr int Dimension = ManifoldTraits<Derived>::Dimension;
   // The dimension of the embedding space.
@@ -65,22 +58,13 @@ class ManifoldElement : public Crtp<Derived> {
     return Derived::ProjectImpl(point);
   }
 
-  // Checks if this point in embedding space lies on the manifold. In general
-  // this is true if the underlying `StorageType` is coordinates on the
-  // manifold. However if the `StorageType` is the same as a point in embedding
-  // space, elements of this class may not always be valid manifold elements.
+  // Checks if this point in embedding space lies on the manifold.
   static bool IsValid(const EmbeddingPoint& point) {
     return Derived::IsValidImpl(point);
   }
 
   // Return this element's point in the underlying embedding space.
-  EmbeddingPoint Point() const { return Crtp<Derived>::get().PointImpl(); }
-
-  // Retrieve the underlying storage for this manifold element.
-  StorageType& Storage() { return Crtp<Derived>::get().StorageImpl(); }
-  const StorageType& Storage() const {
-    return Crtp<Derived>::get().StorageImpl();
-  }
+  EmbeddingPoint Point() const { return derived().PointImpl(); }
 
 #if 0
   // Build a chart at this point on the manifold.
@@ -88,34 +72,43 @@ class ManifoldElement : public Crtp<Derived> {
 
   // Returns a basis for the tangent space at this point on the manifold.
   std::array<TangentVector, Dimension> TangentSpaceBasis() const {
-    return Crtp<Derived>::get().TangentSpaceBasisImpl();
+    return derived().TangentSpaceBasisImpl();
   }
 #endif
 
   // Builds a geodesic curve parameterized between two points on the manifold.
   Geodesic GeodesicTo(const Element& rhs) const {
-    return Geodesic(Crtp<Derived>::get(), rhs);
+    return Geodesic(derived(), rhs);
   }
 
   // Compute the distance between two points on the manifold.
   Scalar DistanceTo(const Element& rhs) const {
-    return Crtp<Derived>::get().DistanceToImpl(rhs);
+    return derived().DistanceToImpl(rhs);
   }
 
   // Interpolate along the path from this manifold element to `rhs`, following
   // the geodesic. The provided fraction should be in [0, 1] for points along
   // the geodesic, and outside of that range to perform extrapolation instead.
   Element Interpolate(const Element& rhs, Scalar fraction) const {
-    return Crtp<Derived>::get().InterpolateImpl(rhs, fraction);
+    return derived().InterpolateImpl(rhs, fraction);
+  }
+
+  // Check if this manifold element is roughly equal to `rhs`.
+  bool EqualTo(const Element& rhs,
+               Scalar tolerance = Constants<Scalar>::kEpsilon) const {
+    return DistanceTo(rhs) < tolerance;
   }
 
   // Equality checking.
-  bool operator==(const Element& rhs) const {
-    return Storage() == rhs.Storage();
-  }
+  bool operator==(const Element& rhs) const { return EqualTo(rhs); }
 
   // Inequality checking.
   bool operator!=(const Element& rhs) const { return !(*this == rhs); }
+
+ private:
+  // CRTP helpers.
+  Derived& derived() { return static_cast<Derived&>(*this); }
+  const Derived& derived() const { return static_cast<const Derived&>(*this); }
 };
 
 // Class representing a chart on a manifold, mapping from the manifold to its

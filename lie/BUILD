@@ -12,10 +12,7 @@ cc_library(
     "group_element.h",
     "manifold_element.h",
   ],
-  deps = [
-    "@eigen",
-    "//utils:crtp",
-  ],
+  deps = ["@eigen"],
 )
 
 cc_library(

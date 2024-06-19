@@ -36,3 +36,6 @@ bazel-bin
 bazel-out
 bazel-testlogs
 bazel-spline
+bazel-mana
+MODULE.bazel
+MODULE.bazel.lock

@@ -6,8 +6,3 @@ cc_library(
   hdrs = ["angles.h"],
   srcs = ["angles.cc"],
 )
-
-cc_library(
-  name = "crtp",
-  hdrs = ["crtp.h"],
-)

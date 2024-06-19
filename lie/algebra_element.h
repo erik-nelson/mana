@@ -3,8 +3,6 @@
 #include <Eigen/Dense>
 #include <utility>
 
-#include "utils/crtp.h"
-
 namespace mana {
 
 // Traits template for an algebra.
@@ -33,7 +31,7 @@ struct AlgebraTraits {};
 // - explicit Element(Vector coordinates); // (constructor)
 // - Element ComposeImpl(const Element& rhs) const;
 template <typename Derived>
-class AlgebraElement : public Crtp<Derived> {
+class AlgebraElement {
  public:
   // An element of the algebra (identical to `Derived`).
   using Element = typename AlgebraTraits<Derived>::Element;
@@ -59,7 +57,7 @@ class AlgebraElement : public Crtp<Derived> {
 
   // The bilinear product of this algebra.
   Element Compose(const Element& rhs) const {
-    return Crtp<Derived>::get().ComposeImpl(rhs);
+    return derived().ComposeImpl(rhs);
   }
 
   // Vector addition: a + b.
@@ -70,7 +68,7 @@ class AlgebraElement : public Crtp<Derived> {
   // Vector in-place addition: a += b.
   Element& operator+=(const Element& rhs) {
     coordinates_ += rhs.coordinates_;
-    return Crtp<Derived>::get();
+    return derived();
   }
 
   // Vector subtraction: a - b.
@@ -81,7 +79,7 @@ class AlgebraElement : public Crtp<Derived> {
   // Vector in-place subtraction: a -= b.
   Element& operator-=(const Element& rhs) {
     coordinates_ -= rhs.coordinates_;
-    return Crtp<Derived>::get();
+    return derived();
   }
 
   // Vector product: a * b.
@@ -91,7 +89,7 @@ class AlgebraElement : public Crtp<Derived> {
   Element& operator*=(const Element& rhs) {
     Element result = Compose(rhs);
     coordinates_ = std::move(result.coordinates_);
-    return Crtp<Derived>::get();
+    return derived();
   }
 
   // Vector negation: -a.
@@ -103,7 +101,7 @@ class AlgebraElement : public Crtp<Derived> {
   // Vector-scalar in-place multiplication: v *= s.
   Element& operator*=(Scalar rhs) {
     coordinates_ *= rhs;
-    return Crtp<Derived>::get();
+    return derived();
   }
 
   // Vector-scalar division: v / s.
@@ -132,6 +130,11 @@ class AlgebraElement : public Crtp<Derived> {
 
   // The underlying coordinate vector for this algebra element.
   Vector coordinates_;
+
+ private:
+  // CRTP helpers.
+  Derived& derived() { return static_cast<Derived&>(*this); }
+  const Derived& derived() const { return static_cast<const Derived&>(*this); }
 };
 
 }  // namespace mana

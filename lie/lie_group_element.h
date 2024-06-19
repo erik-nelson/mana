@@ -2,38 +2,32 @@
 
 #include "lie/algebra_element.h"
 #include "lie/group_element.h"
+#include "lie/lie_algebra_element.h"
 #include "lie/manifold_element.h"
 
 namespace mana {
 
+// Base CRTP class for an element of a Lie group. Lie group elements are
+// elements of both a group as well as a (differentiable, extrinsic) manifold.
 template <typename Derived>
 class LieGroupElement : public GroupElement<Derived>,
                         public ManifoldElement<Derived> {
  public:
-#if 0
-  LieAlgebraElement Log() const { return derived().LogImpl(); }
+  using Algebra = LieAlgebraElement<Derived>;
 
-  Derived Exp(const LieAlgebraElement& algebra_element) const {
-    return derived().ExpImpl(algebra_element);
+  Algebra log() const { return derived().logImpl(); }
+
+  Derived exp(const Algebra& algebra) const {
+    return derived().expImpl(algebra);
   }
 
-  Derived Geodesic(const Derived& other, double t) const {
-    return derived().geodesic_impl(other, t);
+  Algebra::Vector Log() const { return derived().LogImpl(); }
+
+  Derived Exp(const Algebra::Vector& algebra) const {
+    return derived().ExpImpl(algebra);
   }
 
-  double Distance(const Derived& other) const {
-    return derived().DistanceImpl(other);
-  }
-
-  double InnerProduct(const Eigen::VectorXd& vec1,
-                      const Eigen::VectorXd& vec2) const {
-    return derived().InnerProductImpl(vec1, vec2);
-  }
-
-  std::vector<Eigen::VectorXd> TangentSpaceBasis() const {
-    return derived().TangentSpaceBasisImpl();
-  }
-#endif
+  Jacobian Adjoint() const;
 };
 
 }  // namespace mana

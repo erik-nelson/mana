@@ -5,7 +5,6 @@
 #include "gtest/gtest.h"
 #include "lie/constants.h"
 #include "lie/manifold_element.h"
-#include "manifold_element.h"
 #include "utils/angles.h"
 
 namespace mana {
@@ -26,8 +25,6 @@ struct ManifoldTraits<S2Element> {
   using TangentVector = Eigen::Vector<Scalar, 2>;
   // The 2D sphere is embedded in R^3.
   using EmbeddingPoint = Eigen::Vector<Scalar, 3>;
-  // Stored as spherical coords: phi, theta.
-  using StorageType = std::pair<Scalar, Scalar>;
   // The manifold itself is 2 dimensional.
   static constexpr int Dimension = 2;
   // The embedding space is 3 dimensional.
@@ -42,26 +39,23 @@ class S2Element : public ManifoldElement<S2Element> {
   using Geodesic = typename ManifoldTraits<S2Element>::Geodesic;
   using TangentVector = typename ManifoldTraits<S2Element>::TangentVector;
   using EmbeddingPoint = typename ManifoldTraits<S2Element>::EmbeddingPoint;
-  using StorageType = typename ManifoldTraits<S2Element>::StorageType;
   static constexpr int Dimension = ManifoldTraits<S2Element>::Dimension;
   static constexpr int EmbeddingDimension =
       ManifoldTraits<S2Element>::EmbeddingDimension;
 
   // Construct from angles.
-  S2Element(Scalar phi, Scalar theta) {
-    Phi() = Normalized(phi);
-    Theta() = Normalized(theta);
-  }
+  S2Element(Scalar phi, Scalar theta)
+      : phi_(Normalized(phi)), theta_(Normalized(theta)) {}
 
   // Helpers to get phi and theta from underlying storage.
-  double& Phi() { return storage_.first; }
-  const double& Phi() const { return storage_.first; }
-  double& Theta() { return storage_.second; }
-  const double& Theta() const { return storage_.second; }
+  double& phi() { return phi_; }
+  const double& phi() const { return phi_; }
+  double& theta() { return theta_; }
+  const double& theta() const { return theta_; }
 
   // Stream printing.
   friend std::ostream& operator<<(std::ostream& os, const Element& element) {
-    return (os << "Phi, theta: (" << element.Phi() << ", " << element.Theta()
+    return (os << "Phi, theta: (" << element.phi() << ", " << element.theta()
                << ")\n");
   }
 
@@ -80,13 +74,10 @@ class S2Element : public ManifoldElement<S2Element> {
 
   EmbeddingPoint PointImpl() const {
     EmbeddingPoint result;
-    SphericalToCartesian(/*rho=*/1.0, Theta(), Phi(),  //
+    SphericalToCartesian(/*rho=*/1.0, theta(), phi(),  //
                          result.x(), result.y(), result.z());
     return result;
   }
-
-  StorageType& StorageImpl() { return storage_; }
-  const StorageType& StorageImpl() const { return storage_; }
 
 #if 0
   std::array<TangentVector, 1> TangentSpaceBasisImpl() const { return {}; }
@@ -110,26 +101,26 @@ class S2Element : public ManifoldElement<S2Element> {
   }
 
  private:
-  StorageType storage_;
+  Scalar phi_, theta_;
 };
 
 TEST(ManifoldElement, Project) {
   constexpr double eps = Constants<double>::kEpsilon;
   S2Element element = S2Element::Project(Eigen::Vector3d(3, 3, 0));
-  EXPECT_NEAR(element.Phi(), DegToRad(90.0), eps);
-  EXPECT_NEAR(element.Theta(), DegToRad(45.0), eps);
+  EXPECT_NEAR(element.phi(), DegToRad(90.0), eps);
+  EXPECT_NEAR(element.theta(), DegToRad(45.0), eps);
 
   element = S2Element::Project(Eigen::Vector3d(0.1, 0, 0));
-  EXPECT_NEAR(element.Phi(), DegToRad(90.0), eps);
-  EXPECT_NEAR(element.Theta(), DegToRad(0.0), eps);
+  EXPECT_NEAR(element.phi(), DegToRad(90.0), eps);
+  EXPECT_NEAR(element.theta(), DegToRad(0.0), eps);
 
   element = S2Element::Project(Eigen::Vector3d(-1, 0, 0));
-  EXPECT_NEAR(element.Phi(), DegToRad(90.0), eps);
-  EXPECT_NEAR(element.Theta(), DegToRad(180.0), eps);
+  EXPECT_NEAR(element.phi(), DegToRad(90.0), eps);
+  EXPECT_NEAR(element.theta(), DegToRad(180.0), eps);
 
   element = S2Element::Project(Eigen::Vector3d(1, 0, 1));
-  EXPECT_NEAR(element.Phi(), DegToRad(45.0), eps);
-  EXPECT_NEAR(element.Theta(), DegToRad(0.0), eps);
+  EXPECT_NEAR(element.phi(), DegToRad(45.0), eps);
+  EXPECT_NEAR(element.theta(), DegToRad(0.0), eps);
 }
 
 TEST(ManifoldElement, IsValid) {
@@ -158,7 +149,7 @@ TEST(ManifoldElement, IsValid) {
   }
 }
 
-TEST(ManifoldElement, PointStorage) {
+TEST(ManifoldElement, Point) {
   S2Element element(/*phi=*/DegToRad(45.0), /*theta=*/0);
 
   // Get the element as a point in the manifold's embedding space.
@@ -166,14 +157,6 @@ TEST(ManifoldElement, PointStorage) {
   const Eigen::Vector3d point_exp = (0.5 * M_SQRT2) * Eigen::Vector3d(1, 0, 1);
   EXPECT_LT((point_act - point_exp).array().abs().maxCoeff(),
             Constants<double>::kEpsilon);
-
-  // Get the element via its underlying storage representation (phi, theta).
-  EXPECT_EQ(element.Storage(),
-            (std::pair<double, double>(DegToRad(45.0), 0.0)));
-
-  // Ensure storage is mutable.
-  element.Storage().first = 0.0;
-  EXPECT_EQ(element.Storage(), (std::pair<double, double>(0.0, 0.0)));
 }
 
 TEST(ManifoldElement, GeodesicTo) {
@@ -210,6 +193,23 @@ TEST(ManifoldElement, DistanceTo) {
   EXPECT_GE(a.DistanceTo(b) + b.DistanceTo(c), a.DistanceTo(c));
   EXPECT_GE(a.DistanceTo(c) + c.DistanceTo(b), a.DistanceTo(b));
   EXPECT_GE(b.DistanceTo(a) + a.DistanceTo(c), b.DistanceTo(c));
+}
+
+TEST(ManifoldElement, EqualTo) {
+  S2Element a(/*phi=*/DegToRad(90), /*theta=*/0);
+  S2Element b = a;
+  S2Element c(/*phi=*/DegToRad(90), /*theta=*/DegToRad(90));
+
+  EXPECT_TRUE(a.EqualTo(b));
+  EXPECT_TRUE(b.EqualTo(a));
+  EXPECT_EQ(a, b);
+
+  EXPECT_FALSE(a.EqualTo(c));
+  EXPECT_FALSE(c.EqualTo(a));
+  EXPECT_NE(a, c);
+
+  const double tolerance = a.DistanceTo(c) + Constants<double>::kEpsilon;
+  EXPECT_TRUE(a.EqualTo(c, tolerance));
 }
 
 }  // namespace mana
