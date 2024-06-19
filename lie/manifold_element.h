@@ -48,17 +48,13 @@ class ManifoldElement {
   // manifold. For example, an SO(3) derived manifold element type might
   // implement this by projecting a 3x3 matrix onto {R | R'R=I, det(R)=1}, the
   // space of valid rotation matrices.
-  static Element Project(const EmbeddingPoint& point) {
-    return Derived::ProjectImpl(point);
-  }
+  static Element Project(const EmbeddingPoint& point);
 
   // Checks if this point in embedding space lies on the manifold.
-  static bool IsValid(const EmbeddingPoint& point) {
-    return Derived::IsValidImpl(point);
-  }
+  static bool IsValid(const EmbeddingPoint& point);
 
   // Return this element's point in the underlying embedding space.
-  EmbeddingPoint Point() const { return derived().PointImpl(); }
+  EmbeddingPoint Point() const;
 
 #if 0
   // Build a chart at this point on the manifold.
@@ -71,33 +67,25 @@ class ManifoldElement {
 #endif
 
   // Builds a geodesic curve parameterized between two points on the manifold.
-  Geodesic GeodesicTo(const Element& rhs) const {
-    return Geodesic(derived(), rhs);
-  }
+  Geodesic GeodesicTo(const Element& rhs) const;
 
   // Compute the distance between two points on the manifold.
-  Scalar DistanceTo(const Element& rhs) const {
-    return derived().DistanceToImpl(rhs);
-  }
+  Scalar DistanceTo(const Element& rhs) const;
 
   // Interpolate along the path from this manifold element to `rhs`, following
   // the geodesic. The provided fraction should be in [0, 1] for points along
   // the geodesic, and outside of that range to perform extrapolation instead.
-  Element Interpolate(const Element& rhs, Scalar fraction) const {
-    return derived().InterpolateImpl(rhs, fraction);
-  }
+  Element Interpolate(const Element& rhs, Scalar fraction) const;
 
   // Check if this manifold element is roughly equal to `rhs`.
   bool EqualTo(const Element& rhs,
-               Scalar tolerance = Constants<Scalar>::kEpsilon) const {
-    return DistanceTo(rhs) < tolerance;
-  }
+               Scalar tolerance = Constants<Scalar>::kEpsilon) const;
 
   // Equality checking.
-  bool operator==(const Element& rhs) const { return EqualTo(rhs); }
+  bool operator==(const Element& rhs) const;
 
   // Inequality checking.
-  bool operator!=(const Element& rhs) const { return !(*this == rhs); }
+  bool operator!=(const Element& rhs) const;
 
  private:
   // CRTP helpers.
@@ -114,21 +102,15 @@ class ManifoldChart {
   using TangentVector = typename ManifoldTraits<Derived>::TangentVector;
 
   // Construct from origin point on the manifold.
-  explicit ManifoldChart(Element origin) : origin_(std::move(origin)) {}
+  explicit ManifoldChart(Element origin);
 
   // Map an element on the manifold to a tangent vector using the chart's
   // forward map.
-  TangentVector ToTangent(const Element& rhs) const {
-    // TODO(erik): implement.
-    return {};
-  }
+  TangentVector ToTangent(const Element& rhs) const;
 
   // Map a tangent vector to an element on the manifold using the chart's
   // reverse map.
-  Element ToManifold(const TangentVector& rhs) const {
-    // TODO(erik): implement.
-    return {};
-  }
+  Element ToManifold(const TangentVector& rhs) const;
 
  private:
   // The point forming the origin of this chart. The zero tangent vector is
@@ -143,28 +125,123 @@ class ManifoldGeodesic {
   using Element = typename ManifoldTraits<Derived>::Element;
 
   // Construct from start and end points.
-  ManifoldGeodesic(Element beg, Element end)
-      : beg_(std::move(beg)), end_(std::move(end)) {}
+  ManifoldGeodesic(Element beg, Element end);
 
   // Return the geodesic's begin point.
-  const Element& beg() const { return beg_; }
+  const Element& beg() const;
 
   // Return the geodesic's end point.
-  const Element& end() const { return end_; }
+  const Element& end() const;
 
   // Interpolate along the geodesic at the provided fraction. Values in [0, 1]
   // perform true interpolation, values outside of this range perform
   // extrapolation.
-  Element Interpolate(Scalar fraction) const {
-    return beg_.Interpolate(end_, fraction);
-  }
+  Element Interpolate(Scalar fraction) const;
 
   // Return the length of this geodesic.
-  Scalar Length() const { return beg_.DistanceTo(end_); }
+  Scalar Length() const;
 
  private:
   // The geodesic's start and end points.
   Element beg_, end_;
 };
+
+template <typename Derived>
+/*static*/ typename ManifoldElement<Derived>::Element
+ManifoldElement<Derived>::Project(const EmbeddingPoint& point) {
+  return Derived::ProjectImpl(point);
+}
+
+template <typename Derived>
+/*static*/ bool ManifoldElement<Derived>::IsValid(const EmbeddingPoint& point) {
+  return Derived::IsValidImpl(point);
+}
+
+template <typename Derived>
+typename ManifoldElement<Derived>::EmbeddingPoint
+ManifoldElement<Derived>::Point() const {
+  return derived().PointImpl();
+}
+
+template <typename Derived>
+typename ManifoldElement<Derived>::Geodesic
+ManifoldElement<Derived>::GeodesicTo(const Element& rhs) const {
+  return Geodesic(derived(), rhs);
+}
+
+template <typename Derived>
+typename ManifoldElement<Derived>::Scalar ManifoldElement<Derived>::DistanceTo(
+    const Element& rhs) const {
+  return derived().DistanceToImpl(rhs);
+}
+
+template <typename Derived>
+typename ManifoldElement<Derived>::Element
+ManifoldElement<Derived>::Interpolate(const Element& rhs,
+                                      Scalar fraction) const {
+  return derived().InterpolateImpl(rhs, fraction);
+}
+
+template <typename Derived>
+bool ManifoldElement<Derived>::EqualTo(const Element& rhs,
+                                       Scalar tolerance) const {
+  return DistanceTo(rhs) < tolerance;
+}
+
+template <typename Derived>
+bool ManifoldElement<Derived>::operator==(const Element& rhs) const {
+  return EqualTo(rhs);
+}
+
+template <typename Derived>
+bool ManifoldElement<Derived>::operator!=(const Element& rhs) const {
+  return !(*this == rhs);
+}
+
+template <typename Derived>
+ManifoldChart<Derived>::ManifoldChart(Element origin)
+    : origin_(std::move(origin)) {}
+
+template <typename Derived>
+typename ManifoldChart<Derived>::TangentVector
+ManifoldChart<Derived>::ToTangent(const Element& rhs) const {
+  // TODO(erik): implement.
+  return {};
+}
+
+template <typename Derived>
+typename ManifoldChart<Derived>::Element ManifoldChart<Derived>::ToManifold(
+    const TangentVector& rhs) const {
+  // TODO(erik): implement.
+  return {};
+}
+
+template <typename Derived>
+ManifoldGeodesic<Derived>::ManifoldGeodesic(Element beg, Element end)
+    : beg_(std::move(beg)), end_(std::move(end)) {}
+
+template <typename Derived>
+const typename ManifoldGeodesic<Derived>::Element&
+ManifoldGeodesic<Derived>::beg() const {
+  return beg_;
+}
+
+template <typename Derived>
+const typename ManifoldGeodesic<Derived>::Element&
+ManifoldGeodesic<Derived>::end() const {
+  return end_;
+}
+
+template <typename Derived>
+typename ManifoldGeodesic<Derived>::Element
+ManifoldGeodesic<Derived>::Interpolate(Scalar fraction) const {
+  return beg_.Interpolate(end_, fraction);
+}
+
+template <typename Derived>
+typename ManifoldGeodesic<Derived>::Scalar ManifoldGeodesic<Derived>::Length()
+    const {
+  return beg_.DistanceTo(end_);
+}
 
 }  // namespace mana
