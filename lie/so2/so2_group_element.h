@@ -54,10 +54,67 @@ class SO2GroupElement : public LieGroupElement<SO2GroupElement> {
   // Get the rotation matrix for this element (returns a 2x2 matrix).
   EmbeddingPoint AsMatrix() const;
 
+  /* The following methods are inherited from `LieGroupElement<>`:
+   *
+   *  static SO2GroupElement Identity();
+   *
+   *  SO2GroupElement Inverse() const;
+   *
+   *  SO2GroupElement Compose(const SO2GroupElement& rhs) const;
+   *
+   *  SO2GroupElement BetweenInner(const SO2GroupElement& rhs) const;
+   *
+   *  SO2GroupElement BetweenOuter(const SO2GroupElement& rhs) const;
+   *
+   *  static SO2GroupElement FromPoint(const EmbeddingPoint& point);
+   *
+   *  static EmbeddingPoint Project(const EmbeddingPoint& point);
+   *
+   *  static bool IsValid(const EmbeddingPoint& point, Scalar tolerance);
+   *
+   *  EmbeddingPoint Point() const;
+   *
+   *  Geodesic GeodesicTo(const SO2GroupElement& rhs) const;
+   *
+   *  Scalar DistanceTo(const SO2GroupElement& rhs) const;
+   *
+   *  SO2GroupElement Interpolate(const SO2GroupElement& rhs,
+   *                              Scalar fraction) const;
+   *
+   *  bool EqualTo(const SO2GroupElement& rhs, Scalar tolerance) const;
+   *
+   *  bool operator==(const SO2GroupElement& rhs) const;
+   *
+   *  bool operator!=(const SO2GroupElement& rhs) const;
+   *
+   *  AlgebraElement log() const;
+   *
+   *  TangentVector Log() const;
+   *
+   *  static SO2GroupElement exp(const AlgebraElement& algebra);
+   *
+   *  static SO2GroupElement Exp(const TangentVector& coordinate);
+   *
+   *  Jacobian Adjoint() const;
+   *
+   *  SO2GroupElement rplus(const AlgebraElement& rhs) const;
+   *
+   *  SO2GroupElement lplus(const AlgebraElement& rhs) const;
+   *
+   *  SO2GroupElement plus(const AlgebraElement& rhs) const;
+   *
+   *  SO2GroupElement Rplus(const TangentVector& rhs) const;
+   *
+   *  SO2GroupElement Lplus(const TangentVector& rhs) const;
+   *
+   *  SO2GroupElement Plus(const TangentVector& rhs) const;
+   */
+
+  // --------------------------------------------------------------------------
   // Implement `GroupElement<>` interface.
-  static SO2GroupElement Identity();
-  SO2GroupElement Inverse() const;
-  SO2GroupElement Compose(const SO2GroupElement& rhs) const;
+  static SO2GroupElement IdentityImpl();
+  SO2GroupElement InverseImpl() const;
+  SO2GroupElement ComposeImpl(const SO2GroupElement& rhs) const;
 
   // Implement `ManifoldElement<>` interface.
   static SO2GroupElement FromPointImpl(const EmbeddingPoint& point);

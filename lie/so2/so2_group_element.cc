@@ -30,20 +30,25 @@ SO2GroupElement::EmbeddingPoint SO2GroupElement::AsMatrix() const {
   return Point();
 }
 
-/*static*/ SO2GroupElement SO2GroupElement::Identity() {
+/*static*/ SO2GroupElement SO2GroupElement::IdentityImpl() {
   return SO2GroupElement();
 }
 
-SO2GroupElement SO2GroupElement::Inverse() const {
+SO2GroupElement SO2GroupElement::InverseImpl() const {
   return SO2GroupElement(cos_theta_, -sin_theta_);
 }
 
-SO2GroupElement SO2GroupElement::Compose(const SO2GroupElement& rhs) const {
+SO2GroupElement SO2GroupElement::ComposeImpl(const SO2GroupElement& rhs) const {
   // Complex multiplication: (a + bi) * (c + di) = (ac - bd) + (ad + bc)i.
   // (where a = cos(lhs.t), b = sin(lhs.t), c = cos(rhs.t), d = sin(rhs.t)).
-  return SO2GroupElement(
-      cos_theta_ * rhs.cos_theta_ - sin_theta_ * rhs.sin_theta_,
-      cos_theta_ * rhs.sin_theta_ - sin_theta_ * rhs.cos_theta_);
+  Scalar cos_theta = cos_theta_ * rhs.cos_theta_ - sin_theta_ * rhs.sin_theta_;
+  Scalar sin_theta = cos_theta_ * rhs.sin_theta_ - sin_theta_ * rhs.cos_theta_;
+  const Scalar magnitude = cos_theta * cos_theta + sin_theta * sin_theta;
+  if (std::abs(magnitude - 1) >= Constants<Scalar>::kEpsilon) {
+    cos_theta /= magnitude;
+    sin_theta /= magnitude;
+  }
+  return SO2GroupElement(cos_theta, sin_theta);
 }
 
 /*static*/ SO2GroupElement SO2GroupElement::FromPointImpl(
@@ -96,6 +101,9 @@ SO2GroupElement::Jacobian SO2GroupElement::AdjointImpl() const {
 }
 
 SO2GroupElement::SO2GroupElement(Scalar cos_theta, Scalar sin_theta)
-    : cos_theta_(cos_theta), sin_theta_(sin_theta) {}
+    : cos_theta_(cos_theta), sin_theta_(sin_theta) {
+  assert(std::abs(cos_theta_ * cos_theta_ + sin_theta_ * sin_theta - 1) <
+         Constants<Scalar>::kEpsilon);
+}
 
 }  // namespace mana
