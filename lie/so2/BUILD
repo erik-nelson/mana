@@ -4,9 +4,11 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
   name = "so2",
   hdrs = [
+    "so2_algebra_element.h",
     "so2_group_element.h",
   ],
   srcs = [
+    "so2_algebra_element.cc",
     "so2_group_element.cc",
   ],
   deps = [

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Eigen/Dense>
 #include <cassert>
 #include <type_traits>
@@ -8,6 +10,10 @@
 #include "lie/base/manifold_element.h"
 
 namespace mana {
+
+// Traits template for a Lie group.
+template <typename Derived>
+struct LieGroupTraits {};
 
 // Base CRTP class for an element of a Lie group. Lie group elements are
 // elements of both a group as well as a (differentiable, extrinsic) manifold.
@@ -32,10 +38,10 @@ class LieGroupElement : public GroupElement<Derived>,
   static constexpr int EmbeddingDimension =
       ManifoldTraits<Derived>::EmbeddingDimension;
 
-  // Traits specific to Lie groups.
-  using GroupElement = Derived;
-  using AlgebraElement = typename LieAlgebraElement<Derived>::AlgebraElement;
-  using Jacobian = Eigen::Matrix<Scalar, Dimension, Dimension>;
+  // Traits inherited from the fact that we are Lie group.
+  using GroupElement = typename LieGroupTraits<Derived>::GroupElement;
+  using AlgebraElement = typename LieGroupTraits<Derived>::AlgebraElement;
+  using Jacobian = typename LieGroupTraits<Derived>::Jacobian;
 
   // Trait checks: Ensure this Lie group is compatible with the associated
   // algebra type.

@@ -1,9 +1,11 @@
 #pragma once
 
 #include "lie/base/lie_group_element.h"
+#include "lie/so2/so2_algebra_element.h"
 
 namespace mana {
 
+struct so2AlgebraElement;
 struct SO2GroupElement;
 
 // Specialization of manifold traits for SO2.
@@ -17,6 +19,17 @@ struct ManifoldTraits<SO2GroupElement> {
   using EmbeddingPoint = Eigen::Matrix<Scalar, 2, 2>;  // 2D rotation matrices.
   static constexpr int Dimension = 1;
   static constexpr int EmbeddingDimension = 4;
+};
+
+// Specialization of Lie group traits for SO2.
+template <>
+struct LieGroupTraits<SO2GroupElement> {
+  using AlgebraElement = so2AlgebraElement;
+  using GroupElement = SO2GroupElement;
+  using Jacobian =
+      Eigen::Matrix<typename ManifoldTraits<SO2GroupElement>::Scalar,
+                    ManifoldTraits<SO2GroupElement>::Dimension,
+                    ManifoldTraits<SO2GroupElement>::Dimension>;
 };
 
 class SO2GroupElement : public LieGroupElement<SO2GroupElement> {
