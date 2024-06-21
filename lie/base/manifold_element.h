@@ -2,7 +2,7 @@
 
 #include <array>
 
-#include "lie/constants.h"
+#include "lie/base/constants.h"
 
 namespace mana {
 
@@ -15,8 +15,9 @@ struct ManifoldTraits {};
 // within a larger ambient (vector) space.
 //
 // Derived classes must implement these methods.
-// - static Derived ProjectImpl(const EmbeddingPoint& point);
-// - static bool IsValidImpl(const EmbeddingPoint& point);
+// - static Element FromPointImpl(const EmbeddingPoint& point);
+// - static Element ProjectImpl(const EmbeddingPoint& point);
+// - static bool IsValidImpl(const EmbeddingPoint& point, Scalar tolerance);
 // - EmbeddingPoint PointImpl() const;
 // - std::array<TangentVector, Dimension> TangentSpaceBasisImpl() const;
 // - Scalar DistanceToImpl(const Element& rhs) const;
@@ -44,14 +45,19 @@ class ManifoldElement {
   static constexpr int EmbeddingDimension =
       ManifoldTraits<Derived>::EmbeddingDimension;
 
-  // Construct by projecting from a point in the embedding space onto the
-  // manifold. For example, an SO(3) derived manifold element type might
-  // implement this by projecting a 3x3 matrix onto {R | R'R=I, det(R)=1}, the
-  // space of valid rotation matrices.
-  static Element Project(const EmbeddingPoint& point);
+  // Construct from a point in the embedding space. Assumes the provided point
+  // lies ont he manifold.
+  static Element FromPoint(const EmbeddingPoint& point);
+
+  // Project a point from the embedding space onto the manifold. For example, an
+  // SO(3) derived manifold element type might implement this by projecting a
+  // 3x3 matrix onto {R | R'R=I, det(R)=1}, the space of valid rotation
+  // matrices.
+  static EmbeddingPoint Project(const EmbeddingPoint& point);
 
   // Checks if this point in embedding space lies on the manifold.
-  static bool IsValid(const EmbeddingPoint& point);
+  static bool IsValid(const EmbeddingPoint& point,
+                      Scalar tolerance = Constants<Scalar>::kEpsilon);
 
   // Return this element's point in the underlying embedding space.
   EmbeddingPoint Point() const;
@@ -148,13 +154,20 @@ class ManifoldGeodesic {
 
 template <typename Derived>
 /*static*/ typename ManifoldElement<Derived>::Element
+ManifoldElement<Derived>::FromPoint(const EmbeddingPoint& point) {
+  return Derived::FromPointImpl(point);
+}
+
+template <typename Derived>
+/*static*/ typename ManifoldElement<Derived>::EmbeddingPoint
 ManifoldElement<Derived>::Project(const EmbeddingPoint& point) {
   return Derived::ProjectImpl(point);
 }
 
 template <typename Derived>
-/*static*/ bool ManifoldElement<Derived>::IsValid(const EmbeddingPoint& point) {
-  return Derived::IsValidImpl(point);
+/*static*/ bool ManifoldElement<Derived>::IsValid(const EmbeddingPoint& point,
+                                                  Scalar tolerance) {
+  return Derived::IsValidImpl(point, tolerance);
 }
 
 template <typename Derived>

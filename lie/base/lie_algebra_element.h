@@ -1,10 +1,13 @@
 
 #include <Eigen/Dense>
 
-#include "lie/algebra_element.h"
-#include "lie/lie_group_element.h"
+#include "lie/base/algebra_element.h"
 
 namespace mana {
+
+// Forward declaration.
+template <typename Derived>
+class LieGroupElement;
 
 // Base CRTP class for an element of a Lie algebra. Lie algebra elements are
 // vectors in the tangent space at the identity of a corresponding Lie group,

@@ -3,8 +3,8 @@
 #include <iostream>
 
 #include "gtest/gtest.h"
-#include "lie/constants.h"
-#include "lie/manifold_element.h"
+#include "lie/base/constants.h"
+#include "lie/base/manifold_element.h"
 #include "utils/angles.h"
 
 namespace mana {
@@ -60,16 +60,21 @@ class S2Element : public ManifoldElement<S2Element> {
   }
 
   // Implement `ManifoldElement` interface.
-  static S2Element ProjectImpl(const EmbeddingPoint& point) {
-    const Scalar magnitude = point.norm();
-    assert(magnitude != 0.0);
-    const Scalar phi = std::acos(point.z() / magnitude);
+  static S2Element FromPointImpl(const EmbeddingPoint& point) {
+    assert(IsValid(point));
+    const Scalar phi = std::acos(point.z());
     const Scalar theta = std::atan2(point.y(), point.x());
     return S2Element(phi, theta);
   }
 
-  static bool IsValidImpl(const EmbeddingPoint& point) {
-    return (point.squaredNorm() - 1) < Constants<Scalar>::kEpsilon;
+  static EmbeddingPoint ProjectImpl(const EmbeddingPoint& point) {
+    const Scalar magnitude = point.norm();
+    assert(magnitude != 0.0);
+    return point / magnitude;
+  }
+
+  static bool IsValidImpl(const EmbeddingPoint& point, Scalar tolerance) {
+    return (point.squaredNorm() - 1) < tolerance;
   }
 
   EmbeddingPoint PointImpl() const {
@@ -89,15 +94,17 @@ class S2Element : public ManifoldElement<S2Element> {
 
   S2Element InterpolateImpl(const S2Element& rhs, Scalar fraction) const {
     // Slerp between *this and rhs.
-    const EmbeddingPoint p0 = Point();
-    const EmbeddingPoint p1 = rhs.Point();
-    if (p0 == p1) return rhs;  // nothing to interpolate.
-    const double angle = std::acos(p0.dot(p1));
+    const EmbeddingPoint p_beg = Point();
+    const EmbeddingPoint p_end = rhs.Point();
+    if (p_beg == p_end) return rhs;  // nothing to interpolate.
+    const double angle = std::acos(p_beg.dot(p_end));
     const double sin_angle_interp1 = std::sin((1.0 - fraction) * angle);
     const double sin_angle_interp2 = std::sin(fraction * angle);
     const double sin_angle = std::sin(angle);
-    return S2Element::Project((1.0 / sin_angle) * sin_angle_interp1 * p0 +
-                              sin_angle_interp2 * p1);
+    const EmbeddingPoint p_interp =
+        ((1.0 / sin_angle) * sin_angle_interp1 * p_beg) +
+        (sin_angle_interp2 * p_end);
+    return FromPoint(p_interp);
   }
 
  private:
@@ -106,19 +113,37 @@ class S2Element : public ManifoldElement<S2Element> {
 
 TEST(ManifoldElement, Project) {
   constexpr double eps = Constants<double>::kEpsilon;
-  S2Element element = S2Element::Project(Eigen::Vector3d(3, 3, 0));
+  Eigen::Vector3d projected = S2Element::Project(Eigen::Vector3d(3, 3, 0));
+  EXPECT_LT((projected - Eigen::Vector3d(1 / M_SQRT2, 1 / M_SQRT2, 0))
+                .array()
+                .abs()
+                .maxCoeff(),
+            eps);
+  S2Element element = S2Element::FromPoint(projected);
   EXPECT_NEAR(element.phi(), DegToRad(90.0), eps);
   EXPECT_NEAR(element.theta(), DegToRad(45.0), eps);
 
-  element = S2Element::Project(Eigen::Vector3d(0.1, 0, 0));
+  projected = S2Element::Project(Eigen::Vector3d(0.1, 0, 0));
+  EXPECT_LT((projected - Eigen::Vector3d(1, 0, 0)).array().abs().maxCoeff(),
+            eps);
+  element = S2Element::FromPoint(projected);
   EXPECT_NEAR(element.phi(), DegToRad(90.0), eps);
   EXPECT_NEAR(element.theta(), DegToRad(0.0), eps);
 
-  element = S2Element::Project(Eigen::Vector3d(-1, 0, 0));
+  projected = S2Element::Project(Eigen::Vector3d(-1, 0, 0));
+  EXPECT_LT((projected - Eigen::Vector3d(-1, 0, 0)).array().abs().maxCoeff(),
+            eps);
+  element = S2Element::FromPoint(projected);
   EXPECT_NEAR(element.phi(), DegToRad(90.0), eps);
   EXPECT_NEAR(element.theta(), DegToRad(180.0), eps);
 
-  element = S2Element::Project(Eigen::Vector3d(1, 0, 1));
+  projected = S2Element::Project(Eigen::Vector3d(1, 0, 1));
+  EXPECT_LT((projected - Eigen::Vector3d(1 / M_SQRT2, 0, 1 / M_SQRT2))
+                .array()
+                .abs()
+                .maxCoeff(),
+            eps);
+  element = S2Element::FromPoint(projected);
   EXPECT_NEAR(element.phi(), DegToRad(45.0), eps);
   EXPECT_NEAR(element.theta(), DegToRad(0.0), eps);
 }

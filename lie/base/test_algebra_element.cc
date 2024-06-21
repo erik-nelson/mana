@@ -1,7 +1,7 @@
 #include <utility>
 
 #include "gtest/gtest.h"
-#include "lie/algebra_element.h"
+#include "lie/base/algebra_element.h"
 
 namespace mana {
 

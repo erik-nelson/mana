@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+package(default_visibility = ["//visibility:public"])
 
 cc_library(
   name = "constants",
@@ -12,7 +13,10 @@ cc_library(
     "group_element.h",
     "manifold_element.h",
   ],
-  deps = ["@eigen"],
+  deps = [
+    "@eigen",
+    ":constants",
+  ],
 )
 
 cc_library(

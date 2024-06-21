@@ -2,10 +2,10 @@
 #include <cassert>
 #include <type_traits>
 
-#include "lie/algebra_element.h"
-#include "lie/group_element.h"
-#include "lie/lie_algebra_element.h"
-#include "lie/manifold_element.h"
+#include "lie/base/algebra_element.h"
+#include "lie/base/group_element.h"
+#include "lie/base/lie_algebra_element.h"
+#include "lie/base/manifold_element.h"
 
 namespace mana {
 
@@ -15,9 +15,7 @@ namespace mana {
 // Derived classes must implement all methods required of a `GroupElement` and a
 // `ManifoldElement` (see group_element.h and manifold_element.h), as well as
 // these methods:
-// - AlgebraElement logImpl() const;
 // - TangentVector LogImpl() const;
-// - static GroupElement expImpl(const AlgebraElement& algebra);
 // - static GroupElement ExpImpl(const TangentVector& coordinate);
 // - Jacobian AdjointImpl() const;
 template <typename Derived>
@@ -74,7 +72,7 @@ class LieGroupElement : public GroupElement<Derived>,
   GroupElement lplus(const AlgebraElement& lhs) const;
   GroupElement plus(const AlgebraElement& rhs) const;
   AlgebraElement rminus(const GroupElement& rhs) const;
-  AlgebraElement Lminus(const GroupElement& rhs) const;
+  AlgebraElement lminus(const GroupElement& rhs) const;
   AlgebraElement minus(const GroupElement& rhs) const;
 
   // The (upper-case versions of) right- and left- plus and minus operators (see
@@ -88,6 +86,11 @@ class LieGroupElement : public GroupElement<Derived>,
   TangentVector Lminus(const GroupElement& rhs) const;
   TangentVector Minus(const GroupElement& rhs) const;
 
+  // Override base class's DistanceToImpl and InterpolateImpl methods. Lie
+  // groups have a well defined standard distance and interpolation available.
+  Scalar DistanceToImpl(const GroupElement& rhs) const;
+  GroupElement InterpolateImpl(const GroupElement& rhs, Scalar fraction) const;
+
  private:
   // CRTP helpers.
   Derived& derived() { return static_cast<Derived&>(*this); }
@@ -97,7 +100,7 @@ class LieGroupElement : public GroupElement<Derived>,
 template <typename Derived>
 typename LieGroupElement<Derived>::AlgebraElement
 LieGroupElement<Derived>::log() const {
-  return derived().logImpl();
+  return AlgebraElement::Hat(Log());
 }
 
 template <typename Derived>
@@ -109,7 +112,7 @@ typename LieGroupElement<Derived>::TangentVector LieGroupElement<Derived>::Log()
 template <typename Derived>
 /*static*/ typename LieGroupElement<Derived>::GroupElement
 LieGroupElement<Derived>::exp(const AlgebraElement& algebra) {
-  return derived().expImpl(algebra);
+  return Exp(algebra.Vee());
 }
 
 template <typename Derived>
@@ -133,7 +136,7 @@ typename LieGroupElement<Derived>::GroupElement LieGroupElement<Derived>::rplus(
 template <typename Derived>
 typename LieGroupElement<Derived>::GroupElement LieGroupElement<Derived>::lplus(
     const AlgebraElement& lhs) const {
-  return Lplus(rhs.Vee());
+  return Lplus(lhs.Vee());
 }
 
 template <typename Derived>
@@ -150,7 +153,7 @@ LieGroupElement<Derived>::rminus(const GroupElement& rhs) const {
 
 template <typename Derived>
 typename LieGroupElement<Derived>::AlgebraElement
-LieGroupElement<Derived>::Lminus(const GroupElement& rhs) const {
+LieGroupElement<Derived>::lminus(const GroupElement& rhs) const {
   return rhs.BetweenOuter(*this).log();
 }
 
@@ -194,6 +197,19 @@ template <typename Derived>
 typename LieGroupElement<Derived>::TangentVector
 LieGroupElement<Derived>::Minus(const GroupElement& rhs) const {
   return minus(rhs).Vee();
+}
+
+template <typename Derived>
+typename LieGroupElement<Derived>::Scalar
+LieGroupElement<Derived>::DistanceToImpl(const GroupElement& rhs) const {
+  return Minus().norm();
+}
+
+template <typename Derived>
+typename LieGroupElement<Derived>::GroupElement
+LieGroupElement<Derived>::InterpolateImpl(const GroupElement& rhs,
+                                          Scalar fraction) const {
+  return Plus(fraction * rhs.Log());
 }
 
 }  // namespace mana

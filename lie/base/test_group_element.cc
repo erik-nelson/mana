@@ -1,7 +1,8 @@
 #include "gtest/gtest.h"
-#include "lie/group_element.h"
+#include "lie/base/group_element.h"
 
 namespace mana {
+
 // The real numbers under addition form a group. Implement this group for
 // testing.
 class RealNumber : public GroupElement<RealNumber> {
